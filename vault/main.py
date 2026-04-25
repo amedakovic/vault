@@ -1,6 +1,7 @@
 import typer
-from fileio import write_note 
+from fileio import write_note, read_note
 app = typer.Typer()
+dir = "~/.vault/"
 
 @app.command()
 def list():
@@ -9,11 +10,12 @@ def list():
 @app.command()
 def write(note_name: str):
     print("Write command")
-    write_note("~/.vault/", note_name)
+    write_note(dir, note_name)
 
 @app.command()
-def view():
+def view(note_name: str):
     print("View command")
+    read_note(dir, note_name)
 
 if __name__ == "__main__":
     app()

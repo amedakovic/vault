@@ -1,6 +1,8 @@
 from pathlib import Path
 import os
 import subprocess
+from rich.console import Console
+from rich.markdown import Markdown
 
 def open_editor(filename: str):
     # get editor from env variable
@@ -11,6 +13,7 @@ def open_editor(filename: str):
     except FileNotFoundError:
         print(f"Error opening editor on file {filename}")
 
+# append .md to the file name, and create it and then open in editor
 def write_note(working_directory: str, file_name: str):
     file_name = file_name + ".md"
     abs_path = os.path.abspath(os.path.expanduser(working_directory))
@@ -20,3 +23,18 @@ def write_note(working_directory: str, file_name: str):
     os.makedirs(abs_path, exist_ok=True)
     open(target_file, 'a').close()
     open_editor(target_file)
+
+def read_note(working_directory: str, file_name: str):
+    file_name = file_name + ".md"
+    abs_path = os.path.abspath(os.path.expanduser(working_directory))
+    target_file = os.path.normpath(os.path.join(abs_path, file_name))
+    console = Console()
+    if os.path.commonpath([abs_path, target_file]) != abs_path:
+        raise ValueError(f"Path traversal detected: {target_file}")
+    if os.path.isfile(target_file) is False:
+        print(f"Error: File not found or is not a regular file: {target_file}")
+        return
+
+    with open(target_file) as f:
+        renerable_markup  = Markdown(f.read())
+        console.print(renerable_markup)
