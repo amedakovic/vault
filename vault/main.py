@@ -1,22 +1,27 @@
 import typer
-from fileio import write_note, read_note, get_notes_list
+from fileio import write_note, read_note, get_notes_list, delete_note
 app = typer.Typer()
-dir = "~/.vault/"
+VAULT_DIR = "~/.vault/"
 
 @app.command()
 def list():
-    print("List command")
-    get_notes_list(dir)
+    get_notes_list(VAULT_DIR)
 
 @app.command()
 def write(note_name: str):
-    print("Write command")
-    write_note(dir, note_name)
+    write_note(VAULT_DIR, note_name)
 
 @app.command()
 def view(note_name: str):
-    print("View command")
-    read_note(dir, note_name)
+    read_note(VAULT_DIR, note_name)
+
+@app.command()
+def search(search_string: str):
+    search_notes(VAULT_DIR, search_string)
+
+@app.command()
+def delete(note_name: str):
+    delete_note(VAULT_DIR, note_name)
 
 if __name__ == "__main__":
     app()
