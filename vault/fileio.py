@@ -54,14 +54,6 @@ def get_notes_list(working_directory: str):
     _build_tree(abs_path, tree)
     console.print(tree)
 
-def delete_note(working_directory: str, file_name: str):
-    _, target_file = _resolve(working_directory, file_name + ".md")
-    if not os.path.isfile(target_file):
-        console.print(f"[red]Error: File not found or is not a regular file: {target_file}[/red]")
-        return
-    Path(target_file).unlink()
-    console.print(f"[blue]Note: {file_name} [bold]deleted[/bold][/blue]")
-
 def edit_note(working_directory: str, file_name: str):
     _, target_file = _resolve(working_directory, file_name + ".md")
     if os.path.isfile(target_file) is False:
@@ -81,3 +73,34 @@ def delete_note(working_directory: str, file_name: str):
         return
     os.remove(target_file)
     console.print(f"Note [red]{file_name}[/red] deleted")
+
+def setup_config():
+   vault_default = "~/.vault/" 
+   config_file = "vault.config"
+   abs_path, target_file = _resolve(vault_default, config_file)
+
+   if os.path.isfile(target_file) is True:
+       return
+   os.makedirs(abs_path, exist_ok=True)
+   Path(target_file).touch()
+   with open(target_file, "w") as f:
+       _ = f.write("# Directory where vault should be opened, notes written by default here\n")
+       _ = f.write("vault_dir =  ~/.vault/\n")
+
+def read_config() -> str:
+   vault_config_file = "~/.vault/vault.config" 
+   abs_path = os.path.abspath(os.path.expanduser(vault_config_file))
+   vault_dir: str = ""
+
+   if os.path.isfile(abs_path) is False:
+       console.print(f"[red]Error[/red] reading config file ({vault_config_file})")
+
+   with open(abs_path) as f:
+       while True:
+           line = f.readline().strip()
+           if line.startswith("vault_dir"):
+              value_index = line.find("=")
+              vault_dir = line[value_index+1:].strip()
+              break
+
+   return vault_dir
