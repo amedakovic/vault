@@ -1,5 +1,6 @@
 import typer
 from fileio import write_note, read_note, get_notes_list, delete_note
+from search import search_notes
 app = typer.Typer()
 VAULT_DIR = "~/.vault/"
 
