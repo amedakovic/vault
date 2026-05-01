@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+from site import abs_paths
 import subprocess
 from rich.console import Console
 from rich.markdown import Markdown
@@ -21,7 +22,7 @@ def _resolve(working_directory: str, file_name: str) -> tuple[str, str]:
         raise ValueError(f"Path traversal detected: {target_file}")
     return abs_path, target_file
 
-def write_note(working_directory: str, file_name: str):
+def add_note(working_directory: str, file_name: str):
     abs_path, target_file = _resolve(working_directory, file_name + ".md")
     os.makedirs(abs_path, exist_ok=True)
     Path(target_file).touch()
@@ -61,4 +62,9 @@ def delete_note(working_directory: str, file_name: str):
     Path(target_file).unlink()
     console.print(f"[blue]Note: {file_name} [bold]deleted[/bold][/blue]")
 
-
+def edit_note(working_directory: str, file_name: str):
+    _, target_file = _resolve(working_directory, file_name + ".md")
+    if os.path.isfile(target_file) is False:
+        console.print(f"[red]Error[/red] Note not found!")
+        return
+    open_editor(target_file)
