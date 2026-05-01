@@ -1,10 +1,10 @@
 from pathlib import Path
 import os
-from site import abs_paths
 import subprocess
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.tree import Tree
+from rich.prompt import Prompt
 
 console = Console()
 
@@ -68,3 +68,16 @@ def edit_note(working_directory: str, file_name: str):
         console.print(f"[red]Error[/red] Note not found!")
         return
     open_editor(target_file)
+
+def delete_note(working_directory: str, file_name: str):
+    _, target_file = _resolve(working_directory, file_name + ".md")
+
+    if os.path.isfile(target_file) is False:
+        console.print(f"[red]Error[/red] Note not found!")
+        return
+
+    confirmation = Prompt.ask(f"Are you sure you want to delete note {file_name}", default="n", choices=["y", "n"])
+    if confirmation[0] == "n":
+        return
+    os.remove(target_file)
+    console.print(f"Note [red]{file_name}[/red] deleted")
