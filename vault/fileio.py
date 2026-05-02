@@ -13,7 +13,7 @@ def open_editor(filename: str):
     try:
         subprocess.run([editor, filename], check=True)
     except FileNotFoundError:
-        console.print(f"[red]Error opening editor on file {filename}[/red]")
+        console.print(f"[red]Error opening editor on note {filename}[/red]")
 
 def _resolve(working_directory: str, file_name: str) -> tuple[str, str]:
     abs_path = os.path.abspath(os.path.expanduser(working_directory))
@@ -31,7 +31,7 @@ def add_note(working_directory: str, file_name: str):
 def read_note(working_directory: str, file_name: str):
     _, target_file = _resolve(working_directory, file_name + ".md")
     if not os.path.isfile(target_file):
-        console.print(f"[red]Error: File not found or is not a regular file: {target_file}[/red]")
+        console.print(f"[red]Error: note not found or is not a regular note: {target_file}[/red]")
         return
     with open(target_file) as f:
         console.print(Markdown(f.read()))

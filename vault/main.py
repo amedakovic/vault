@@ -2,6 +2,7 @@ import typer
 from fileio import add_note, read_note, get_notes_list, delete_note, edit_note, delete_note, read_config, setup_config, open_editor
 from search import search_notes
 from pathlib import Path
+from graph import note_links, full_graph
 app = typer.Typer()
 setup_config()
 
@@ -35,5 +36,12 @@ def view(note_name: str):
 def search(search_string: str):
     search_notes(VAULT_DIR, search_string)
 
+@app.command()
+def links(note_name: str):
+    note_links(VAULT_DIR, note_name)
+
+@app.command()
+def graph():
+    full_graph(VAULT_DIR)
 if __name__ == "__main__":
     app()
