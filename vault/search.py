@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import re
 from rich.console import Console
+from rich.tree import Tree
 
 console = Console()
 
@@ -30,10 +31,10 @@ def search_notes(working_directory: str, search_string: str):
     pattern = rf"{re.escape(search_string)}"
     found: dict[str, list[str]] = {}
     _build_found_string_dic(abs_path, pattern, found)
-    console.print(f"String \"{search_string}\" found in {len(found)} notes")
+    tree = Tree(f"String \"{search_string}\" found in {len(found)} notes")
     for line in found:
         note_len = len(os.path.commonpath([line, abs_path]))
-        print(f"{line[note_len+1:-3]}:")
+        note_branch = tree.add(f"{line[note_len+1:-3]}:")
         for foundStr in found[line]:
-            console.print(f"\t{foundStr}")
-
+            note_branch.add(f"{foundStr}")
+    console.print(tree)
