@@ -1,0 +1,10 @@
+#tree-side {
+        width: 30%;
+        height: 100%;
+        border-right: vkey $accent;
+}
+
+#view-side {
+        width: 70%;
+        height: 100%;
+}

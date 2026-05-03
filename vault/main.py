@@ -3,10 +3,15 @@ from fileio import add_note, read_note, get_notes_list, delete_note, edit_note, 
 from search import search_notes
 from pathlib import Path
 from graph import note_links, full_graph
+from tui import run_tui
 app = typer.Typer()
 setup_config()
 
 VAULT_DIR = read_config()
+
+@app.command()
+def tui():
+    run_tui(VAULT_DIR)
 
 @app.command()
 def config():

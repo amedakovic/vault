@@ -36,21 +36,27 @@ def read_note(working_directory: str, file_name: str):
     with open(target_file) as f:
         console.print(Markdown(f.read()))
 
+def _get_dir_entries(directory: str) -> list[tuple[str, str, bool]]:
+     entries = []
+     for name in sorted(os.listdir(directory)):
+         path = os.path.join(directory, name)
+         entries.append((name, path, Path(path).is_dir()))
+     return entries
+
 def _build_tree(directory: str, tree: Tree) -> None:
-    for entry in os.listdir(directory):
-        path = os.path.join(directory, entry)
-        if Path(path).is_dir():
-            branch = tree.add(f"[bold blue]{entry}[/bold blue]")
+    for name,path,is_dir in _get_dir_entries(directory):
+        if is_dir:
+            branch = tree.add(f"[bold blue]{name}[/bold blue]")
             _build_tree(path, branch)
         else:
-            tree.add(f"[green]{entry}[/green]")
+            tree.add(f"[green]{name}[/green]")
 
 def get_notes_list(working_directory: str):
     abs_path = os.path.abspath(os.path.expanduser(working_directory))
     if not Path(abs_path).is_dir():
         console.print(f"[red]Error: {abs_path} is not a directory[/red]")
         return
-    tree = Tree(f"[bold]{abs_path}[/bold]")
+    tree = Tree("[bold]vault[/bold]")
     _build_tree(abs_path, tree)
     console.print(tree)
 
@@ -104,3 +110,4 @@ def read_config() -> str:
               break
 
    return vault_dir
+
