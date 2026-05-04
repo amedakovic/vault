@@ -8,10 +8,14 @@ from rich.prompt import Prompt
 
 console = Console()
 
-def open_editor(filename: str):
+def open_editor(filename: str, context=None):
     editor = os.environ.get('EDITOR', 'nano' if os.name != 'nt' else 'notepad')
     try:
-        subprocess.run([editor, filename], check=True)
+        if context is not None:
+            with context:
+                subprocess.run([editor, filename], check=True)
+        else:
+            subprocess.run([editor, filename], check=True)
     except FileNotFoundError:
         console.print(f"[red]Error opening editor on note {filename}[/red]")
 
@@ -22,11 +26,11 @@ def _resolve(working_directory: str, file_name: str) -> tuple[str, str]:
         raise ValueError(f"Path traversal detected: {target_file}")
     return abs_path, target_file
 
-def add_note(working_directory: str, file_name: str):
+def add_note(working_directory: str, file_name: str, context=None):
     abs_path, target_file = _resolve(working_directory, file_name + ".md")
     os.makedirs(abs_path, exist_ok=True)
     Path(target_file).touch()
-    open_editor(target_file)
+    open_editor(target_file, context=context)
 
 def read_note(working_directory: str, file_name: str):
     _, target_file = _resolve(working_directory, file_name + ".md")
@@ -60,24 +64,25 @@ def get_notes_list(working_directory: str):
     _build_tree(abs_path, tree)
     console.print(tree)
 
-def edit_note(working_directory: str, file_name: str):
+def edit_note(working_directory: str, file_name: str, context=None):
     _, target_file = _resolve(working_directory, file_name + ".md")
     if os.path.isfile(target_file) is False:
         console.print(f"[red]Error[/red] Note not found!")
         return
-    open_editor(target_file)
+    open_editor(target_file, context)
 
+def _delete_note(working_directory: str, file_name: str):
+    _, target_file = _resolve(working_directory, file_name + ".md")
+
+    if os.path.isfile(target_file) is False:
+        console.print(f"[red]Error[/red] Note not found!")
+        return
+    os.remove(target_file)
 def delete_note(working_directory: str, file_name: str):
-    _, target_file = _resolve(working_directory, file_name + ".md")
-
-    if os.path.isfile(target_file) is False:
-        console.print(f"[red]Error[/red] Note not found!")
-        return
-
     confirmation = Prompt.ask(f"Are you sure you want to delete note {file_name}", default="n", choices=["y", "n"])
     if confirmation[0] == "n":
         return
-    os.remove(target_file)
+    _delete_note(working_directory, file_name)
     console.print(f"Note [red]{file_name}[/red] deleted")
 
 def setup_config():
