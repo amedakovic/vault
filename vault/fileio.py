@@ -64,25 +64,24 @@ def get_notes_list(working_directory: str):
     _build_tree(abs_path, tree)
     console.print(tree)
 
-def edit_note(working_directory: str, file_name: str, context=None):
-    _, target_file = _resolve(working_directory, file_name + ".md")
+def edit_note(target_file: str, context=None):
     if os.path.isfile(target_file) is False:
         console.print(f"[red]Error[/red] Note not found!")
         return
     open_editor(target_file, context)
 
-def _delete_note(working_directory: str, file_name: str):
-    _, target_file = _resolve(working_directory, file_name + ".md")
-
+def _delete_note(target_file: str):
     if os.path.isfile(target_file) is False:
         console.print(f"[red]Error[/red] Note not found!")
         return
     os.remove(target_file)
+
 def delete_note(working_directory: str, file_name: str):
     confirmation = Prompt.ask(f"Are you sure you want to delete note {file_name}", default="n", choices=["y", "n"])
     if confirmation[0] == "n":
         return
-    _delete_note(working_directory, file_name)
+    _, target_file = _resolve(working_directory, file_name + ".md")
+    _delete_note(target_file)
     console.print(f"Note [red]{file_name}[/red] deleted")
 
 def setup_config():

@@ -49,23 +49,34 @@ def note_links(working_directory: str, note_name: str):
             linked_by_branch.add(f"<- {link}")
     console.print(tree)
 
-def build_full_tree(directory: str, tree: Tree):
+def get_graph_data(directory: str) -> list[dict]:
+    nodes = []
     for entry in os.listdir(directory):
         if entry.endswith(".config"):
             continue
         path = os.path.join(directory, entry)
         if Path(path).is_dir():
-            build_full_tree(path, tree)
+            nodes.append({"name": f"[blue]{entry}[/blue]", "links": [], "children": get_graph_data(path)})
         else:
             links = search_links_in_note(path)
-            branch = tree.add(f"[blue]{entry}[/blue]")
-            if len(links) <= 0:
-                branch.add("No links found in note")
-                continue
-            for link in links:
-                branch.add(f"-> {link}")
+            name = entry[:-3] if entry.endswith(".md") else entry
+            nodes.append({"name": name, "links": links, "children": []})
+    return nodes
 
-def full_graph(working_directory:str):
+def build_full_tree(directory: str, tree: Tree):
+    def _add(nodes, parent):
+        for node in nodes:
+            branch = parent.add(f"[blue]{node['name']}[/blue]")
+            if node["children"]:
+                _add(node["children"], branch)
+            elif node["links"]:
+                for link in node["links"]:
+                    branch.add(f"-> {link}")
+            else:
+                branch.add("No links found in note")
+    _add(get_graph_data(directory), tree)
+
+def full_graph(working_directory: str):
     abs_path = os.path.abspath(os.path.expanduser(working_directory))
     if os.path.isfile(abs_path):
         console.print(f"[red]Error: given a note: {abs_path}[/red]")
@@ -73,5 +84,3 @@ def full_graph(working_directory:str):
     tree = Tree("Full graph")
     build_full_tree(abs_path, tree)
     console.print(tree)
-
-

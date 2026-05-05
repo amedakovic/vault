@@ -3,11 +3,12 @@ from rich import text
 from textual import events
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal
-from textual.widgets import MarkdownViewer, Welcome,Tree, Label, Button, Input
+from textual.widgets import MarkdownViewer, Welcome, Tree, Label, Button, Input
 from textual.containers import Grid
 from textual.screen import ModalScreen
 from fileio import _get_dir_entries, _delete_note, add_note, edit_note
 from pathlib import Path
+from graph import get_graph_data
 import os
 class NewNoteNameInput(ModalScreen[bool]):
     """A modal screen to confirm deletion."""
@@ -81,6 +82,44 @@ Button:focus {
             self.dismiss(True)
         else:
             self.dismiss(False)
+class GraphScreen(ModalScreen):
+    CSS = """
+    GraphScreen { align: center middle; }
+    #graph-container {
+        width: 80%;
+        height: 80%;
+        border: thick $background 80%;
+        background: $surface;
+    }
+    """
+
+    def __init__(self, directory: str):
+        super().__init__()
+        self._directory = directory
+
+    def _populate(self, nodes, parent):
+        for node in nodes:
+            if node["children"]:
+                branch = parent.add(node["name"], expand=False)
+                self._populate(node["children"], branch)
+            else:
+                branch = parent.add(node["name"], expand=False)
+                for link in node["links"]:
+                    branch.add_leaf(f"-> {link}")
+                if not node["links"]:
+                    branch.add_leaf("(no links)")
+
+    def compose(self) -> ComposeResult:
+        graph: Tree[str] = Tree("Full Graph", id="graph-container")
+        self._populate(get_graph_data(self._directory), graph.root)
+        graph.root.expand()
+        yield graph
+
+    def on_key(self, event: events.Key) -> None:
+        if event.key in ("escape", "q"):
+            self.dismiss()
+
+
 class MyApp(App):
     #CSS = "~/Projects/vault/vault/tui_css.css"
     CSS = """
@@ -142,15 +181,18 @@ class MyApp(App):
             self.push_screen(NewNoteNameInput(), callback=self.handle_add_note)
         if event.key == "e":
             await self.handle_edit_note()
+        if event.key == "g":
+            abs_path = os.path.abspath(os.path.expanduser(self._working_directory))
+            if os.path.isfile(abs_path):
+                return
+            self.push_screen(GraphScreen(abs_path))
 
     async def handle_edit_note(self):
         node = self.notes.cursor_node
-        if node is None:
+        if node is None or node.data is None:
             return
-        note_name = str(node.label)
-        edit_note(self._working_directory, note_name, context=self.suspend())
-        path = node.data
-        await self._show_in_viewer(path)
+        edit_note(node.data, context=self.suspend())
+        await self._show_in_viewer(node.data)
 
     async def _show_in_viewer(self, path: str | None):
         if path is None:
@@ -170,10 +212,9 @@ class MyApp(App):
         if should_delete is False:
             return
         node = self.notes.cursor_node
-        if node is None:
+        if node is None or node.data is None:
             return
-        note_name = str(node.label)
-        _delete_note(self._working_directory, note_name)
+        _delete_note(node.data)
         self.notes.clear()
         self._get_tree()
 
