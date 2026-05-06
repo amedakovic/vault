@@ -1,6 +1,6 @@
 # vault
 
-A obsidian-lite terminal-based note-taking tool.
+A obsidian-lite terminal-based note-taking tool. Using rich for displaying in the console and textual for the simple tui.
 
 ## Features
 
