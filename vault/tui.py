@@ -3,13 +3,53 @@ from rich import text
 from textual import events
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal
-from textual.widgets import MarkdownViewer, Welcome, Tree, Label, Button, Input
-from textual.containers import Grid
+from textual.widgets import MarkdownViewer, Welcome, Tree, Label, Button, Input, Static
+from textual.containers import Grid, Vertical
 from textual.screen import ModalScreen
 from fileio import _get_dir_entries, _delete_note, add_note, edit_note
 from pathlib import Path
 from graph import get_graph_data
 import os
+class WelcomeScreen(ModalScreen):
+    CSS = """
+    WelcomeScreen { align: center middle; }
+    #welcome-box {
+        width: 50;
+        height: auto;
+        border: thick $accent;
+        background: $surface;
+        padding: 1 2;
+    }
+    #welcome-title {
+        text-align: center;
+        text-style: bold;
+        color: $accent;
+        padding-bottom: 1;
+    }
+    #welcome-hint {
+        text-align: center;
+        color: $text-muted;
+        padding-top: 1;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="welcome-box"):
+            yield Static("vault", id="welcome-title")
+            yield Static(
+                "[bold]j[/bold] / [bold]k[/bold]   navigate up / down\n"
+                "[bold]l[/bold]         expand / collapse folder\n"
+                "[bold]a[/bold]         add new note\n"
+                "[bold]e[/bold]         edit note in editor\n"
+                "[bold]d[/bold]         delete note\n"
+                "[bold]g[/bold]         show full graph"
+            )
+            yield Static("press any key to continue", id="welcome-hint")
+
+    def on_key(self, event: events.Key) -> None:
+        self.dismiss()
+
+
 class NewNoteNameInput(ModalScreen[bool]):
     """A modal screen to confirm deletion."""
 
@@ -220,6 +260,7 @@ class MyApp(App):
 
     def on_mount(self) -> None:
         self._get_tree()
+        self.push_screen(WelcomeScreen())
 
 def run_tui(working_directory: str):
     app = MyApp(working_directory)
